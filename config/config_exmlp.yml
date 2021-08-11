@@ -1,0 +1,12 @@
+app:
+  http_port: 8888
+  log:
+    dir: "logs"
+    file: "app.log"
+  db:
+    login: ""
+    pass: ""
+    host: ""
+    port: 3306
+    name: ""
+    args: "parseTime=true&multiStatements=true"

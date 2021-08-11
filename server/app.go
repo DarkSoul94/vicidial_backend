@@ -12,7 +12,6 @@ import (
 
 	"github.com/DarkSoul94/vicidial_backend/vicidial_backend"
 	vicidial_backendhttp "github.com/DarkSoul94/vicidial_backend/vicidial_backend/delivery/http"
-	vicidial_backendrepo "github.com/DarkSoul94/vicidial_backend/vicidial_backend/repo/mock"
 	vicidial_backendusecase "github.com/DarkSoul94/vicidial_backend/vicidial_backend/usecase"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-migrate/migrate/v4"
@@ -23,24 +22,20 @@ import (
 
 // App ...
 type App struct {
-	vicidial_backendUC      vicidial_backend.Usecase
-	vicidial_backendRepo    vicidial_backend.Repository
-	httpServer *http.Server
+	vicidial_backendUC vicidial_backend.Usecase
+	httpServer         *http.Server
 }
 
 // NewApp ...
 func NewApp() *App {
-	repo := vicidial_backendrepo.NewRepo()
-	uc := vicidial_backendusecase.NewUsecase(repo)
+	uc := vicidial_backendusecase.NewUsecase()
 	return &App{
-		vicidial_backendUC:   uc,
-		vicidial_backendRepo: repo,
+		vicidial_backendUC: uc,
 	}
 }
 
 // Run run vicidial_backendlication
 func (a *App) Run(port string) error {
-	defer a.vicidial_backendRepo.Close()
 	router := gin.Default()
 	router.Use(
 		gin.Recovery(),

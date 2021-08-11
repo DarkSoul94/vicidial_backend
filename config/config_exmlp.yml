@@ -10,3 +10,10 @@ app:
     port: 3306
     name: ""
     args: "parseTime=true&multiStatements=true"
+  1C:
+    url: ""
+    auth_token: ""
+  vicidial:
+    url: ""
+    login: ""
+    pass: ""

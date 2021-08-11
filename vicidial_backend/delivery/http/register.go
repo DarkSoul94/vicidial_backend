@@ -9,8 +9,18 @@ import (
 func RegisterHTTPEndpoints(router *gin.Engine, uc vicidial_backend.Usecase) {
 	h := NewHandler(uc)
 
-	apiEndpoints := router.Group("/api")
+	vicidialEndpoints := router.Group("/vicidial")
 	{
-		apiEndpoints.POST("/", h.HelloWorld)
+		vicidialEndpoints.POST("/get_lk_info", h.GetLKInfo)
+		vicidialEndpoints.POST("/:action", h.VicidialActions)
 	}
+
+	/*ivrEndpoint := router.Group("/ivr")
+	{
+		ivrEndpoint.GET("", h.Ivr)
+		ivrEndpoint.POST("", h.Ivr)
+
+	}
+	*/
+	//router.Group("/update_lead").POST("", h.VicidialActions)
 }

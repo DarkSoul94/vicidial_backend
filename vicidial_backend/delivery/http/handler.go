@@ -130,7 +130,7 @@ func (h *Handler) IvrGet(c *gin.Context) {
 	}
 
 	params := h.getParamsFromUrl(c)
-	params = h.prepareData(params, "phone", "inn", "send_sms")
+	params = h.prepareData(params, "phone", "inn")
 	data := map[string]interface{}{
 		"phone":    params["phone"],
 		"inn":      params["inn"],
@@ -153,6 +153,7 @@ func (h *Handler) IvrPost(c *gin.Context) {
 	data := make(map[string]interface{})
 	if err = c.BindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, map[string]string{"error": ErrDataIsNotJson.Error()})
+		return
 	}
 
 	data = h.prepareData(data, "phone", "inn", "send_sms")

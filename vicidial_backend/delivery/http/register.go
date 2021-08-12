@@ -6,7 +6,7 @@ import (
 )
 
 // RegisterHTTPEndpoints ...
-func RegisterHTTPEndpoints(router *gin.Engine, uc vicidial_backend.Usecase) {
+func RegisterHTTPEndpoints(router *gin.RouterGroup, uc vicidial_backend.Usecase) {
 	h := NewHandler(uc)
 
 	vicidialEndpoints := router.Group("/vicidial")

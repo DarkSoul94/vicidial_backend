@@ -2,8 +2,10 @@ package usecase
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"net/http"
+	"time"
 )
 
 type Helper struct {
@@ -36,7 +38,7 @@ func (h *Helper) Get(url string, data map[string]interface{}) (*http.Response, e
 	if err != nil {
 		return &http.Response{}, err
 	}
-	defer responce.Body.Close()
+
 	return responce, nil
 }
 
@@ -56,13 +58,17 @@ func (h *Helper) Post(url string, data map[string]interface{}, headers map[strin
 	for key, val := range headers {
 		request.Header.Set(key, val)
 	}
+	tr := http.DefaultTransport.(*http.Transport).Clone()
+	tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	client := &http.Client{
+		Transport: tr,
+		Timeout:   60 * time.Second,
+	}
 
-	client := &http.Client{}
 	responce, err = client.Do(request)
 	if err != nil {
 		return &http.Response{}, err
 	}
-	defer responce.Body.Close()
-	return responce, nil
 
+	return responce, nil
 }

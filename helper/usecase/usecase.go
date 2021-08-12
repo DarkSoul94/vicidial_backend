@@ -33,7 +33,12 @@ func (h *Helper) Get(url string, data map[string]interface{}) (*http.Response, e
 	}
 	request.URL.RawQuery = query.Encode()
 
-	client := &http.Client{}
+	tr := http.DefaultTransport.(*http.Transport).Clone()
+	tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	client := &http.Client{
+		Transport: tr,
+		Timeout:   60 * time.Second,
+	}
 	responce, err = client.Do(request)
 	if err != nil {
 		return &http.Response{}, err

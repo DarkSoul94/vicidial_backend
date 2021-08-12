@@ -151,6 +151,7 @@ func (h *Handler) IvrPost(c *gin.Context) {
 	data := make(models.Lead)
 	if err = c.BindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, map[string]string{"error": ErrDataIsNotJson.Error()})
+		return
 	}
 
 	data = map[string]interface{}{

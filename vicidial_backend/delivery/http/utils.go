@@ -8,11 +8,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-func (h *Handler) makeRequestTo1c(resource string, data map[string]interface{}) (map[string]string, error) {
+func (h *Handler) makeRequestTo1c(resource string, data map[string]interface{}) (map[string]interface{}, error) {
 	var (
 		url    string
-		header map[string]string = make(map[string]string)
-		result map[string]string = map[string]string{}
+		header map[string]string      = make(map[string]string)
+		result map[string]interface{} = make(map[string]interface{})
 	)
 
 	url = viper.GetString("app.1C.url") + resource
@@ -21,10 +21,10 @@ func (h *Handler) makeRequestTo1c(resource string, data map[string]interface{}) 
 
 	res, err := h.httpClient.Post(url, data, header)
 	if err != nil {
-		return map[string]string{"error": "connection error"}, nil
+		return map[string]interface{}{"error": "connection error"}, nil
 	}
-
-	body, _ := ioutil.ReadAll(res.Body)
+	body, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
 	json.Unmarshal(body, &result)
 
 	return result, nil
@@ -49,6 +49,8 @@ func (h *Handler) makeRequestToVicidial(resource string, data map[string]interfa
 	}
 
 	body, _ := ioutil.ReadAll(res.Body)
+	res.Body.Close()
 	json.Unmarshal(body, &result)
+
 	return result, nil
 }

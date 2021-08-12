@@ -87,6 +87,7 @@ func (u *Usecase) addLead(lead models.Lead) {
 			success = true
 			break
 		}
+		res.Body.Close()
 		time.Sleep(500 * time.Millisecond)
 	}
 	if !success {
@@ -105,5 +106,6 @@ func (u *Usecase) UpdateLead(lead models.Lead) {
 	lead["pass"] = viper.GetString("app.vicidial.pass")
 	lead["source"] = "test"
 
-	u.httpClient.Get(url, lead)
+	res, _ := u.httpClient.Get(url, lead)
+	res.Body.Close()
 }

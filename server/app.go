@@ -40,8 +40,9 @@ func (a *App) Run(port string) error {
 		gin.Recovery(),
 		gin.Logger(),
 	)
+	apiRouter := router.Group("/api")
 
-	vicidial_backendhttp.RegisterHTTPEndpoints(router, a.vicidial_backendUC)
+	vicidial_backendhttp.RegisterHTTPEndpoints(apiRouter, a.vicidial_backendUC)
 
 	a.httpServer = &http.Server{
 		Addr:           ":" + port,

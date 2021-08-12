@@ -15,13 +15,12 @@ func RegisterHTTPEndpoints(router *gin.Engine, uc vicidial_backend.Usecase) {
 		vicidialEndpoints.POST("/:action", h.VicidialActions)
 	}
 
-	/*ivrEndpoint := router.Group("/ivr")
+	ivrEndpoint := router.Group("/ivr")
 	{
-		ivrEndpoint.GET("", h.Ivr)
-		ivrEndpoint.POST("", h.Ivr)
+		ivrEndpoint.GET("", h.IvrGet)
+		ivrEndpoint.POST("", h.IvrPost)
 
 	}
-	*/
 
 	router.Group("/add_lead").POST("", h.AddLead)
 	router.Group("/update_lead").POST("", h.UpdateLead)

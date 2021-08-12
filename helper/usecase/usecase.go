@@ -9,10 +9,19 @@ import (
 )
 
 type Helper struct {
+	client *http.Client
 }
 
 func NewHelper() *Helper {
-	return &Helper{}
+	tr := http.DefaultTransport.(*http.Transport).Clone()
+	tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+	return &Helper{
+		client: &http.Client{
+			Transport: tr,
+			Timeout:   60 * time.Second,
+		},
+	}
 }
 
 func (h *Helper) Get(url string, data map[string]interface{}) (*http.Response, error) {
@@ -33,13 +42,7 @@ func (h *Helper) Get(url string, data map[string]interface{}) (*http.Response, e
 	}
 	request.URL.RawQuery = query.Encode()
 
-	tr := http.DefaultTransport.(*http.Transport).Clone()
-	tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	client := &http.Client{
-		Transport: tr,
-		Timeout:   60 * time.Second,
-	}
-	responce, err = client.Do(request)
+	responce, err = h.client.Do(request)
 	if err != nil {
 		return &http.Response{}, err
 	}
@@ -63,14 +66,8 @@ func (h *Helper) Post(url string, data map[string]interface{}, headers map[strin
 	for key, val := range headers {
 		request.Header.Set(key, val)
 	}
-	tr := http.DefaultTransport.(*http.Transport).Clone()
-	tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	client := &http.Client{
-		Transport: tr,
-		Timeout:   60 * time.Second,
-	}
 
-	responce, err = client.Do(request)
+	responce, err = h.client.Do(request)
 	if err != nil {
 		return &http.Response{}, err
 	}

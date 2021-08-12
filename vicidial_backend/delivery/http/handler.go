@@ -109,3 +109,61 @@ func (h *Handler) GetLKInfo(c *gin.Context) {
 	*/
 	//c.JSON(http.StatusOK, resp)
 }
+
+func (h *Handler) AddLead(c *gin.Context) {
+	var (
+		data []map[string]interface{} = make([]map[string]interface{}, 0)
+		err  error
+	)
+
+	err = c.BindJSON(&data)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, map[string]string{"status": "error", "error": err.Error()})
+		return
+	}
+
+	h.uc.AddLeads(data)
+
+	c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func (h *Handler) UpdateLead(c *gin.Context) {
+	var (
+		data map[string]interface{} = make(map[string]interface{})
+		err  error
+	)
+
+	err = c.BindJSON(&data)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, map[string]string{"status": "error", "error": err.Error()})
+		return
+	}
+
+	h.uc.UpdateLead(data)
+
+	c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func (h *Handler) NonAgentApi(c *gin.Context) {
+	var (
+		data     map[string]interface{}
+		resource string
+		result   map[string]string
+		err      error
+	)
+
+	err = c.BindJSON(&data)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, map[string]string{"status": "error", "error": err.Error()})
+		return
+	}
+
+	resource = "/vicidial/non_agent_api.php"
+	result, err = h.makeRequestToVicidial(resource, data)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, map[string]string{"status": "error", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}

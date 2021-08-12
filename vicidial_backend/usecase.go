@@ -1,8 +1,7 @@
 package vicidial_backend
 
-import "context"
-
 // Usecase ...
 type Usecase interface {
-	HelloWorld(ctx context.Context)
+	AddLeads(leads []map[string]interface{})
+	UpdateLead(lead map[string]interface{})
 }

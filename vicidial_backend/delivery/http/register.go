@@ -22,5 +22,9 @@ func RegisterHTTPEndpoints(router *gin.Engine, uc vicidial_backend.Usecase) {
 
 	}
 	*/
-	//router.Group("/update_lead").POST("", h.VicidialActions)
+
+	router.Group("/add_lead").POST("", h.AddLead)
+	router.Group("/update_lead").POST("", h.UpdateLead)
+	router.Group("/non_agent_api").POST("", h.NonAgentApi)
+
 }

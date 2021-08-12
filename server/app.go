@@ -2,33 +2,32 @@ package server
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	"github.com/DarkSoul94/vicidial_backend/helper"
+	helperUC "github.com/DarkSoul94/vicidial_backend/helper/usecase"
 	"github.com/DarkSoul94/vicidial_backend/vicidial_backend"
 	vicidial_backendhttp "github.com/DarkSoul94/vicidial_backend/vicidial_backend/delivery/http"
 	vicidial_backendusecase "github.com/DarkSoul94/vicidial_backend/vicidial_backend/usecase"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // required
-	"github.com/spf13/viper"
 )
 
 // App ...
 type App struct {
 	vicidial_backendUC vicidial_backend.Usecase
 	httpServer         *http.Server
+	httpClient         helper.Helper
 }
 
 // NewApp ...
 func NewApp() *App {
-	uc := vicidial_backendusecase.NewUsecase()
+	clint := helperUC.NewHelper()
+	uc := vicidial_backendusecase.NewUsecase(clint)
 	return &App{
 		vicidial_backendUC: uc,
 	}
@@ -67,42 +66,4 @@ func (a *App) Run(port string) error {
 	defer shutdown()
 
 	return a.httpServer.Shutdown(ctx)
-}
-
-func initDB() *sql.DB {
-	dbString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s",
-		viper.GetString("vicidial_backend.db.login"),
-		viper.GetString("vicidial_backend.db.pass"),
-		viper.GetString("vicidial_backend.db.host"),
-		viper.GetString("vicidial_backend.db.port"),
-		viper.GetString("vicidial_backend.db.name"),
-		viper.GetString("vicidial_backend.db.args"),
-	)
-	db, err := sql.Open(
-		"mysql",
-		dbString,
-	)
-	if err != nil {
-		panic(err)
-	}
-	runMigrations(db)
-	return db
-}
-
-func runMigrations(db *sql.DB) {
-	driver, err := mysql.WithInstance(db, &mysql.Config{})
-	if err != nil {
-		panic(err)
-	}
-	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
-		viper.GetString("vicidial_backend.db.name"),
-		driver)
-	if err != nil {
-		panic(err)
-	}
-	err = m.Up()
-	if err != nil && err != migrate.ErrNoChange && err != migrate.ErrNilVersion {
-		fmt.Println(err)
-	}
 }

@@ -35,7 +35,6 @@ func (u *Usecase) addLeads(leads []models.Lead) {
 func (u *Usecase) addLead(lead models.Lead) {
 	max_tries := viper.GetInt("app.vicidial.max_tries")
 	resource := "/vicidial/non_agent_api.php"
-	url := viper.GetString("app.vicidial.url") + resource
 	_, tz := time.Now().Local().Zone()
 
 	data := map[string]interface{}{
@@ -52,7 +51,7 @@ func (u *Usecase) addLead(lead models.Lead) {
 		"email":           lead.Get("email", ""),
 		"first_name":      lead.Get("first_name", ""),
 		"phone_code":      lead.Get("phone_code", ""),
-		"source":          lead.Get("source", ""),
+		"source":          "test",
 		"user":            viper.GetString("app.vicidial.login"),
 		"pass":            viper.GetString("app.vicidial.pass"),
 		"gmt_offset_now":  fmt.Sprint(time.Duration(tz * int(time.Second)).Hours()), //
@@ -73,6 +72,7 @@ func (u *Usecase) addLead(lead models.Lead) {
 		data["callback_comments"] = lead.Get("callback_comments", "")
 		data["callback_datetime"] = lead.Get("callback_datetime", lead.Get("security_phrase", ""))
 	}
+	url := viper.GetString("app.vicidial.url") + resource
 
 	success := false
 	for i := 0; i < max_tries; i++ {
@@ -82,11 +82,11 @@ func (u *Usecase) addLead(lead models.Lead) {
 			time.Sleep(500 * time.Millisecond)
 			continue
 		}
-
 		if res.StatusCode == 200 {
 			success = true
 			break
 		}
+
 		res.Body.Close()
 		time.Sleep(500 * time.Millisecond)
 	}
@@ -106,6 +106,8 @@ func (u *Usecase) UpdateLead(lead models.Lead) {
 	lead["pass"] = viper.GetString("app.vicidial.pass")
 	lead["source"] = "test"
 
-	res, _ := u.httpClient.Get(url, lead)
-	res.Body.Close()
+	res, err := u.httpClient.Get(url, lead)
+	if err == nil {
+		res.Body.Close()
+	}
 }

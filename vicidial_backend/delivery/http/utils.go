@@ -58,7 +58,7 @@ func (h *Handler) makeRequestToVicidial(resource string, data map[string]interfa
 
 func (h *Handler) makeRequestToGateway(data models.Lead) (map[string]interface{}, error) {
 	response := make(map[string]interface{})
-	data = map[string]interface{}{
+	data = models.Lead{
 		"flag_get": "get_info_vici",
 		"inn":      data.Get("inn", ""),
 		"phone":    data.Get("phone", ""),

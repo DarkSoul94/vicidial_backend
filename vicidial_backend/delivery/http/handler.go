@@ -8,6 +8,7 @@ import (
 	"github.com/DarkSoul94/vicidial_backend/models"
 	"github.com/DarkSoul94/vicidial_backend/vicidial_backend"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/spf13/viper"
 )
 
@@ -97,7 +98,6 @@ func (h *Handler) VicidialActions(c *gin.Context) {
 	} else {
 		response = map[string]interface{}{"error": ErrMethodNotAlowed.Error()}
 	}
-
 	c.JSON(http.StatusOK, response)
 }
 
@@ -161,15 +161,21 @@ func (h *Handler) getLeadFromUrl(c *gin.Context) models.Lead {
 func (h *Handler) AddLead(c *gin.Context) {
 	var (
 		data []models.Lead = make([]models.Lead, 0)
+		lead models.Lead
 		err  error
 	)
 
-	err = c.BindJSON(&data)
+	err = c.ShouldBindBodyWith(&lead, binding.JSON)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, map[string]string{"status": "error", "error": err.Error()})
-		return
+		err = c.ShouldBindBodyWith(&data, binding.JSON)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, map[string]string{"status": "error", "error": err.Error()})
+			return
+		}
 	}
-
+	if len(data) == 0 {
+		data = append(data, lead)
+	}
 	h.uc.AddLeads(data)
 
 	c.JSON(http.StatusOK, map[string]string{"status": "ok"})

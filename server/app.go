@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -63,8 +62,9 @@ func (a *App) Run(port string) error {
 	}
 	unixListener, err := net.Listen("unix", a.socket)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
+	os.Chmod(a.socket, 0664)
 	defer unixListener.Close()
 
 	go func() {

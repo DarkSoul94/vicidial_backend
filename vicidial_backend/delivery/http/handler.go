@@ -1,6 +1,8 @@
 package http
 
 import (
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -104,6 +106,7 @@ func (h *Handler) GetLKInfo(c *gin.Context) {
 		"inn":      data["inn"],
 		"phone":    data["phone"],
 	}
+
 	gtUrl := viper.GetString("app.getaway_url")
 	gtToken := viper.GetString("app.auth_getaway_token")
 
@@ -111,14 +114,19 @@ func (h *Handler) GetLKInfo(c *gin.Context) {
 		gtUrl,
 		data,
 		map[string]string{"token": gtToken})
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
 	}
 
 	body, _ := ioutil.ReadAll(objResponse.Body)
-	c.JSON(http.StatusOK, body)
+	objResponse.Body.Close()
+	fmt.Println(string(body))
+
+	res := make(map[string]interface{})
+	err = json.Unmarshal(body, &res)
+
+	c.JSON(http.StatusOK, res)
 }
 
 func (h *Handler) IvrGet(c *gin.Context) {

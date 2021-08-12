@@ -6,6 +6,7 @@ import (
 
 	"github.com/DarkSoul94/vicidial_backend/helper"
 	helperUC "github.com/DarkSoul94/vicidial_backend/helper/usecase"
+	"github.com/DarkSoul94/vicidial_backend/models"
 	"github.com/DarkSoul94/vicidial_backend/vicidial_backend"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -70,7 +71,7 @@ func (h *Handler) VicidialActions(c *gin.Context) {
 		return
 	}
 
-	data := make(map[string]interface{})
+	data := make(models.Lead)
 	if err = c.BindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, map[string]string{"error": ErrDataIsNotJson.Error()})
 		return
@@ -91,18 +92,16 @@ func (h *Handler) GetLKInfo(c *gin.Context) {
 		return
 	}
 
-	data := make(map[string]interface{})
+	data := make(models.Lead)
 	if err = c.BindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, map[string]string{"error": ErrDataIsNotJson.Error()})
 		return
 	}
 
-	data = h.prepareData(data, "inn", "phone")
-
 	data = map[string]interface{}{
 		"flag_get": "get_info_vici",
-		"inn":      data["inn"],
-		"phone":    data["phone"],
+		"inn":      data.Get("inn", ""),
+		"phone":    data.Get("phone", ""),
 	}
 	gtUrl := viper.GetString("app.getaway_url")
 	gtToken := viper.GetString("app.auth_getaway_token")
@@ -129,12 +128,11 @@ func (h *Handler) IvrGet(c *gin.Context) {
 		return
 	}
 
-	params := h.getParamsFromUrl(c)
-	params = h.prepareData(params, "phone", "inn", "send_sms")
+	lead := h.getLeadFromUrl(c)
 	data := map[string]interface{}{
-		"phone":    params["phone"],
-		"inn":      params["inn"],
-		"send_sms": params["send_sms"],
+		"phone":    lead.Get("phone", ""),
+		"inn":      lead.Get("inn", ""),
+		"send_sms": lead.Get("send_sms", false),
 	}
 	response, _ := h.makeRequestTo1c("ivr", data)
 
@@ -150,16 +148,15 @@ func (h *Handler) IvrPost(c *gin.Context) {
 		return
 	}
 
-	data := make(map[string]interface{})
+	data := make(models.Lead)
 	if err = c.BindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, map[string]string{"error": ErrDataIsNotJson.Error()})
 	}
 
-	data = h.prepareData(data, "phone", "inn", "send_sms")
 	data = map[string]interface{}{
-		"phone":    data["phone"],
-		"inn":      data["inn"],
-		"send_sms": data["send_sms"],
+		"phone":    data.Get("phone", ""),
+		"inn":      data.Get("inn", ""),
+		"send_sms": data.Get("send_sms", false),
 	}
 	response, _ := h.makeRequestTo1c("ivr", data)
 
@@ -167,8 +164,8 @@ func (h *Handler) IvrPost(c *gin.Context) {
 }
 
 //getParamsFromUrl получает все параметры которые были переданы и формирует
-func (h *Handler) getParamsFromUrl(c *gin.Context) map[string]interface{} {
-	params := make(map[string]interface{})
+func (h *Handler) getLeadFromUrl(c *gin.Context) models.Lead {
+	params := make(models.Lead)
 	keys := make([]string, 0, len(c.Request.URL.Query()))
 	for k := range c.Request.URL.Query() {
 		keys = append(keys, k)
@@ -179,19 +176,9 @@ func (h *Handler) getParamsFromUrl(c *gin.Context) map[string]interface{} {
 	return params
 }
 
-//prepareData функция заполняет пустой строкой значение в мапе если значение по ключу не было найдено
-func (h *Handler) prepareData(data map[string]interface{}, keys ...string) map[string]interface{} {
-	for _, val := range keys {
-		if _, ok := data[val]; !ok {
-			data[val] = ""
-		}
-	}
-	return data
-}
-
 func (h *Handler) AddLead(c *gin.Context) {
 	var (
-		data []map[string]interface{} = make([]map[string]interface{}, 0)
+		data []models.Lead = make([]models.Lead, 0)
 		err  error
 	)
 

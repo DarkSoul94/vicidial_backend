@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	"github.com/DarkSoul94/vicidial_backend/models"
+	"github.com/DarkSoul94/vicidial_backend/pkg/logger"
 	"github.com/spf13/viper"
 )
 
@@ -22,6 +23,7 @@ func (h *Handler) makeRequestTo1c(resource string, data map[string]interface{}) 
 
 	res, err := h.httpClient.Post(url, data, header)
 	if err != nil {
+		logger.LogError("Failed POST request to 1C", "make_request_to_1C", data["action"].(string), err)
 		return map[string]interface{}{"error": "connection error"}, nil
 	}
 	body, _ := ioutil.ReadAll(res.Body)
@@ -46,6 +48,7 @@ func (h *Handler) makeRequestToVicidial(resource string, data map[string]interfa
 
 	res, err := h.httpClient.Get(url, req_data)
 	if err != nil {
+		logger.LogError("Failed POST request to vicidial", "make_request_to_vicidial", data["action"].(string), err)
 		return map[string]interface{}{}, err
 	}
 
@@ -72,7 +75,9 @@ func (h *Handler) makeRequestToGateway(data models.Lead) (map[string]interface{}
 		map[string]string{"token": gtToken})
 
 	if err != nil {
-		return nil, err
+		errText := fmt.Sprintf("phone: %s, inn: %s", data["phone"].(string), data["inn"].(string))
+		logger.LogError("Failed POST request to gateway", "make_request_to_gateway", errText, err)
+		return map[string]interface{}{}, err
 	}
 
 	body, _ := ioutil.ReadAll(objResponse.Body)

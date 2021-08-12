@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"fmt"
+	"io/ioutil"
+	"strings"
 	"time"
 
 	"github.com/DarkSoul94/vicidial_backend/helper"
@@ -33,6 +35,8 @@ func (u *Usecase) addLeads(leads []models.Lead) {
 }
 
 func (u *Usecase) addLead(lead models.Lead) {
+	const SuccessLeadAdd string = "SUCCESS: add_lead LEAD HAS BEEN ADDED"
+
 	max_tries := viper.GetInt("app.vicidial.max_tries")
 	resource := "/vicidial/non_agent_api.php"
 	_, tz := time.Now().Local().Zone()
@@ -79,16 +83,18 @@ func (u *Usecase) addLead(lead models.Lead) {
 		res, err := u.httpClient.Get(url, data)
 		if err != nil {
 			logger.LogError("Get method failed", "add lead", data["phone_number"].(string), err)
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(viper.GetDuration("app.vicidial.delay") * time.Millisecond)
 			continue
 		}
-		if res.StatusCode == 200 {
+
+		body, _ := ioutil.ReadAll(res.Body)
+		res.Body.Close()
+		if res.StatusCode == 200 || strings.Contains(string(body), SuccessLeadAdd) || res.Status == "200 OK" {
 			success = true
 			break
 		}
 
-		res.Body.Close()
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(viper.GetDuration("app.vicidial.delay") * time.Millisecond)
 	}
 	if !success {
 		logger.LogError("Failed add lead", "add lead", data["phone_number"].(string), nil)
@@ -107,7 +113,16 @@ func (u *Usecase) UpdateLead(lead models.Lead) {
 	lead["source"] = "test"
 
 	res, err := u.httpClient.Get(url, lead)
-	if err == nil {
-		res.Body.Close()
+	if err != nil {
+		logger.LogError("Failed GET-request", "update lead", resource, err)
+		return
 	}
+
+	if res.StatusCode != 200 {
+		body, _ := ioutil.ReadAll(res.Body)
+		logger.LogError("Failed update lead", "update lead", string(body), nil)
+	}
+
+	res.Body.Close()
+
 }

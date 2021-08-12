@@ -1,16 +1,24 @@
 app:
   http_port: 8888
+  socket: ""
+  release: false
+
   log:
     dir: "logs"
     file: "app.log"
+
   1C:
     url: ""
     auth_token: ""
+
   vicidial:
     url: ""
     login: ""
     pass: ""
     max_tries: 5
+    delay: 500 #miliseconds
+
+    
   auth_key: ""
   auth_getaway_token: ""
   getaway_url: ""

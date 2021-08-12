@@ -9,13 +9,11 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/DarkSoul94/vicidial_backend/helper"
 	helperUC "github.com/DarkSoul94/vicidial_backend/helper/usecase"
 	"github.com/DarkSoul94/vicidial_backend/vicidial_backend"
 	vicidial_backendhttp "github.com/DarkSoul94/vicidial_backend/vicidial_backend/delivery/http"
 	vicidial_backendusecase "github.com/DarkSoul94/vicidial_backend/vicidial_backend/usecase"
 	"github.com/gin-gonic/gin"
-	_ "github.com/golang-migrate/migrate/v4/source/file" // required
 	"github.com/spf13/viper"
 )
 
@@ -23,7 +21,6 @@ import (
 type App struct {
 	vicidial_backendUC vicidial_backend.Usecase
 	httpServer         *http.Server
-	httpClient         helper.Helper
 	socket             string
 }
 

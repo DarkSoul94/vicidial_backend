@@ -1,9 +1,6 @@
 package http
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/DarkSoul94/vicidial_backend/helper"
@@ -98,53 +95,10 @@ func (h *Handler) VicidialActions(c *gin.Context) {
 			return
 		}
 	} else {
-		response = map[string]interface{}{"error": ErrMethodNotAlowed}
+		response = map[string]interface{}{"error": ErrMethodNotAlowed.Error()}
 	}
 
 	c.JSON(http.StatusOK, response)
-}
-
-// GetLKInfo ...
-func (h *Handler) GetLKInfo(c *gin.Context) {
-	var err error
-
-	if err = h.validateAuthKey(c); err != nil {
-		c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
-		return
-	}
-
-	data := make(models.Lead)
-	if err = c.BindJSON(&data); err != nil {
-		c.JSON(http.StatusBadRequest, map[string]string{"error": ErrDataIsNotJson.Error()})
-		return
-	}
-
-	data = map[string]interface{}{
-		"flag_get": "get_info_vici",
-		"inn":      data.Get("inn", ""),
-		"phone":    data.Get("phone", ""),
-	}
-
-	gtUrl := viper.GetString("app.getaway_url")
-	gtToken := viper.GetString("app.auth_getaway_token")
-
-	objResponse, err := h.httpClient.Post(
-		gtUrl,
-		data,
-		map[string]string{"token": gtToken})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		return
-	}
-
-	body, _ := ioutil.ReadAll(objResponse.Body)
-	objResponse.Body.Close()
-	fmt.Println(string(body))
-
-	res := make(map[string]interface{})
-	err = json.Unmarshal(body, &res)
-
-	c.JSON(http.StatusOK, res)
 }
 
 func (h *Handler) IvrGet(c *gin.Context) {

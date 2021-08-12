@@ -11,7 +11,6 @@ func RegisterHTTPEndpoints(router *gin.RouterGroup, uc vicidial_backend.Usecase)
 
 	vicidialEndpoints := router.Group("/vicidial")
 	{
-		vicidialEndpoints.POST("/get_lk_info", h.GetLKInfo)
 		vicidialEndpoints.POST("/:action", h.VicidialActions)
 	}
 

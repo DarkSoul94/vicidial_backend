@@ -12,12 +12,22 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	Actions1C      string = "1C_actions"
+	ActionsGateway string = "gateway_actions"
+)
+
 var (
-	allowedActions []string = []string{
-		"send_sms", "get_payment_requsits", "get_main_info",
-		"get_loan_info", "get_ticket_info", "get_detail_loan",
-		"get_detail_ticket", "find_by_fio", "get_loans_by_phone",
-		"get_balance_on_date", "get_phones_from_order",
+	actionList map[string][]string = map[string][]string{
+		Actions1C: {
+			"send_sms", "get_payment_requsits", "get_main_info",
+			"get_loan_info", "get_ticket_info", "get_detail_loan",
+			"get_detail_ticket", "find_by_fio", "get_loans_by_phone",
+			"get_balance_on_date", "get_phones_from_order",
+		},
+		ActionsGateway: {
+			"get_lk_info",
+		},
 	}
 )
 
@@ -43,11 +53,23 @@ func (h *Handler) validateAuthKey(c *gin.Context) error {
 	}
 	return nil
 }
+func (h *Handler) allowedActions(action string) string {
+	for key := range actionList {
+		for _, val := range actionList[key] {
+			if action == val {
+				return key
+			}
+		}
+	}
+	return ""
+}
 
 // VicidialActions ...
 func (h *Handler) VicidialActions(c *gin.Context) {
 	var (
-		err error
+		err      error
+		key      string
+		response map[string]interface{}
 	)
 
 	if err = h.validateAuthKey(c); err != nil {
@@ -56,20 +78,7 @@ func (h *Handler) VicidialActions(c *gin.Context) {
 	}
 
 	action := c.Param("action")
-
-	actionAllowed := func(action string) bool {
-		for _, val := range allowedActions {
-			if action == val {
-				return true
-			}
-		}
-		return false
-	}
-
-	if !actionAllowed(action) {
-		c.JSON(http.StatusBadRequest, map[string]string{"error": ErrMethodNotAlowed.Error()})
-		return
-	}
+	key = h.allowedActions(action)
 
 	data := make(models.Lead)
 	if err = c.BindJSON(&data); err != nil {
@@ -78,7 +87,17 @@ func (h *Handler) VicidialActions(c *gin.Context) {
 	}
 	data["action"] = action
 
-	response, _ := h.makeRequestTo1c("vicidial", data)
+	if key == Actions1C {
+		response, _ = h.makeRequestTo1c("vicidial", data)
+	} else if key == ActionsGateway {
+		response, err = h.makeRequestToGateway(data)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return
+		}
+	} else {
+		response = map[string]interface{}{"error": ErrMethodNotAlowed}
+	}
 
 	c.JSON(http.StatusOK, response)
 }
@@ -215,7 +234,7 @@ func (h *Handler) NonAgentApi(c *gin.Context) {
 	var (
 		data     map[string]interface{}
 		resource string
-		result   map[string]string
+		result   map[string]interface{}
 		err      error
 	)
 

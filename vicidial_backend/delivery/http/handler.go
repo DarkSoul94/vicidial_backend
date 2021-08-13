@@ -69,7 +69,7 @@ func (h *Handler) VicidialActions(c *gin.Context) {
 	var (
 		err      error
 		key      string
-		response map[string]interface{}
+		response map[string]interface{} = make(map[string]interface{})
 	)
 
 	if err = h.validateAuthKey(c); err != nil {
@@ -88,11 +88,15 @@ func (h *Handler) VicidialActions(c *gin.Context) {
 	data["action"] = action
 
 	if key == Actions1C {
-		response, _ = h.makeRequestTo1c("vicidial", data)
+		response, err = h.makeRequestTo1c("vicidial", data)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, map[string]interface{}{"error": "connection error"})
+			return
+		}
 	} else if key == ActionsGateway {
 		response, err = h.makeRequestToGateway(data)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, map[string]interface{}{"error": "connection error"})
 			return
 		}
 	} else {
@@ -115,22 +119,24 @@ func (h *Handler) IvrGet(c *gin.Context) {
 		"inn":      lead.Get("inn", ""),
 		"send_sms": lead.Get("send_sms", false),
 	}
-	response, _ := h.makeRequestTo1c("ivr", data)
-
+	response, err := h.makeRequestTo1c("ivr", data)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, map[string]interface{}{"error": "connection error"})
+		return
+	}
 	c.JSON(http.StatusOK, response)
 
 }
 
 func (h *Handler) IvrPost(c *gin.Context) {
-	var err error
 
-	if err = h.validateAuthKey(c); err != nil {
+	if err := h.validateAuthKey(c); err != nil {
 		c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
 		return
 	}
 
 	data := make(models.Lead)
-	if err = c.BindJSON(&data); err != nil {
+	if err := c.BindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, map[string]string{"error": ErrDataIsNotJson.Error()})
 		return
 	}
@@ -140,8 +146,11 @@ func (h *Handler) IvrPost(c *gin.Context) {
 		"inn":      data.Get("inn", ""),
 		"send_sms": data.Get("send_sms", false),
 	}
-	response, _ := h.makeRequestTo1c("ivr", data)
-
+	response, err := h.makeRequestTo1c("ivr", data)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, map[string]interface{}{"error": "connection error"})
+		return
+	}
 	c.JSON(http.StatusOK, response)
 }
 

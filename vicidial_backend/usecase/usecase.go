@@ -92,6 +92,8 @@ func (u *Usecase) addLead(lead models.Lead) {
 		body, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			logger.LogError(fmt.Sprintf("Failed read response body from %s", url), "add lead", data["action"].(string), err)
+			time.Sleep(viper.GetDuration("app.vicidial.delay") * time.Millisecond)
+			continue
 		}
 		res.Body.Close()
 		if res.StatusCode == 200 || strings.Contains(string(body), SuccessLeadAdd) || res.Status == "200 OK" {

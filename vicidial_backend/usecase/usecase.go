@@ -80,7 +80,6 @@ func (u *Usecase) addLead(lead models.Lead) {
 	}
 	url := viper.GetString("app.vicidial.url") + resource
 
-	success := false
 	for i := 0; i < max_tries; i++ {
 		res, err := u.httpClient.Get(url, data)
 		if err != nil {
@@ -88,24 +87,19 @@ func (u *Usecase) addLead(lead models.Lead) {
 			time.Sleep(viper.GetDuration("app.vicidial.delay"))
 			continue
 		}
-
+		defer res.Body.Close()
 		body, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			logger.LogError(fmt.Sprintf("Failed read response body from %s", url), "add lead", data["action"].(string), err)
 			time.Sleep(viper.GetDuration("app.vicidial.delay") * time.Millisecond)
 			continue
 		}
-		res.Body.Close()
 		if res.StatusCode == 200 || strings.Contains(string(body), SuccessLeadAdd) || res.Status == "200 OK" {
-			success = true
-			break
+			return
 		}
-
 		time.Sleep(viper.GetDuration("app.vicidial.delay"))
 	}
-	if !success {
-		logger.LogError(fmt.Sprintf("Failed add lead to %s", resource), "add lead", data["phone_number"].(string), errors.New(string(body)))
-	}
+	logger.LogError(fmt.Sprintf("Failed add lead to %s", resource), "add lead", data["phone_number"].(string), errors.New(string(body)))
 }
 
 func (u *Usecase) UpdateLead(lead models.Lead) {
@@ -124,12 +118,11 @@ func (u *Usecase) UpdateLead(lead models.Lead) {
 		logger.LogError(fmt.Sprintf("Failed GET-request to %s", resource), "update lead", resource, err)
 		return
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
 		body, _ := ioutil.ReadAll(res.Body)
 		logger.LogError("Failed update lead", "update lead", string(body), nil)
 	}
-
-	res.Body.Close()
 
 }

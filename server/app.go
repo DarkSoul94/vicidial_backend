@@ -49,8 +49,8 @@ func (a *App) Run(port string) error {
 
 	a.httpServer = &http.Server{
 		Handler:        router,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		ReadTimeout:    120 * time.Second,
+		WriteTimeout:   120 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
 

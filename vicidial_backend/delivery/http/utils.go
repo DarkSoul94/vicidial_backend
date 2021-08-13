@@ -26,11 +26,11 @@ func (h *Handler) makeRequestTo1c(resource string, data map[string]interface{}) 
 		logger.LogError(fmt.Sprintf("Failed POST request to %s", url), "make_request_to_1C", data["action"].(string), err)
 		return map[string]interface{}{"error": "connection error"}, err
 	}
+	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		logger.LogError(fmt.Sprintf("Failed read response body from %s", url), "make_request_to_1C", data["action"].(string), err)
 	}
-	res.Body.Close()
 	json.Unmarshal(body, &result)
 
 	return result, err
@@ -54,12 +54,12 @@ func (h *Handler) makeRequestToVicidial(resource string, data map[string]interfa
 		logger.LogError(fmt.Sprintf("Failed POST request to %s", url), "make_request_to_vicidial", data["action"].(string), err)
 		return map[string]interface{}{}, err
 	}
+	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		logger.LogError(fmt.Sprintf("Failed read response body from %s", url), "make_request_to_vicidial", data["action"].(string), err)
 	}
-	res.Body.Close()
 	json.Unmarshal(body, &result)
 
 	return result, err
@@ -85,12 +85,12 @@ func (h *Handler) makeRequestToGateway(data models.Lead) (map[string]interface{}
 		logger.LogError(fmt.Sprintf("Failed POST request to %s", gtUrl), "make_request_to_gateway", errText, err)
 		return map[string]interface{}{}, err
 	}
+	defer objResponse.Body.Close()
 
 	body, err := ioutil.ReadAll(objResponse.Body)
 	if err != nil {
 		logger.LogError(fmt.Sprintf("Failed read response body from %s", gtUrl), "make_request_to_gateway", data["action"].(string), err)
 	}
-	objResponse.Body.Close()
 	json.Unmarshal(body, &response)
 	return response, err
 }

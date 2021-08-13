@@ -2,6 +2,7 @@ app:
   http_port: 8888
   socket: ""
   release: false
+  header_timeout: 60 #seconds
 
   log:
     dir: "logs"

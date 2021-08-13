@@ -85,7 +85,7 @@ func (u *Usecase) addLead(lead models.Lead) {
 		res, err := u.httpClient.Get(url, data)
 		if err != nil {
 			logger.LogError(fmt.Sprintf("Failed GET-request to %s", resource), "add lead", data["phone_number"].(string), err)
-			time.Sleep(viper.GetDuration("app.vicidial.delay") * time.Millisecond)
+			time.Sleep(viper.GetDuration("app.vicidial.delay"))
 			continue
 		}
 
@@ -101,7 +101,7 @@ func (u *Usecase) addLead(lead models.Lead) {
 			break
 		}
 
-		time.Sleep(viper.GetDuration("app.vicidial.delay") * time.Millisecond)
+		time.Sleep(viper.GetDuration("app.vicidial.delay"))
 	}
 	if !success {
 		logger.LogError(fmt.Sprintf("Failed add lead to %s", resource), "add lead", data["phone_number"].(string), errors.New(string(body)))

@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 type Helper struct {
@@ -15,7 +17,7 @@ type Helper struct {
 func NewHelper() *Helper {
 	tr := http.DefaultTransport.(*http.Transport).Clone()
 	tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	tr.ResponseHeaderTimeout = 30 * time.Second
+	tr.ResponseHeaderTimeout = viper.GetDuration("app.header_timeout") * time.Second
 	return &Helper{
 		client: &http.Client{
 			Transport: tr,

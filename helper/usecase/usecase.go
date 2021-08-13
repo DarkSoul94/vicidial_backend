@@ -27,7 +27,7 @@ func NewHelper() *Helper {
 func (h *Helper) Get(url string, data map[string]interface{}) (*http.Response, error) {
 	var (
 		request  *http.Request
-		responce *http.Response
+		response *http.Response
 		err      error
 	)
 
@@ -42,18 +42,18 @@ func (h *Helper) Get(url string, data map[string]interface{}) (*http.Response, e
 	}
 	request.URL.RawQuery = query.Encode()
 
-	responce, err = h.client.Do(request)
+	response, err = h.client.Do(request)
 	if err != nil {
 		return &http.Response{}, err
 	}
 
-	return responce, nil
+	return response, nil
 }
 
 func (h *Helper) Post(url string, data map[string]interface{}, headers map[string]string) (*http.Response, error) {
 	var (
 		request  *http.Request
-		responce *http.Response
+		response *http.Response
 		err      error
 	)
 
@@ -67,10 +67,10 @@ func (h *Helper) Post(url string, data map[string]interface{}, headers map[strin
 		request.Header.Set(key, val)
 	}
 
-	responce, err = h.client.Do(request)
+	response, err = h.client.Do(request)
 	if err != nil {
 		return &http.Response{}, err
 	}
 
-	return responce, nil
+	return response, nil
 }

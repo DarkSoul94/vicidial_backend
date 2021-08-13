@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -35,6 +36,7 @@ func (u *Usecase) addLeads(leads []models.Lead) {
 }
 
 func (u *Usecase) addLead(lead models.Lead) {
+	var err error
 	const SuccessLeadAdd string = "SUCCESS: add_lead LEAD HAS BEEN ADDED"
 
 	max_tries := viper.GetInt("app.vicidial.max_tries")
@@ -87,17 +89,21 @@ func (u *Usecase) addLead(lead models.Lead) {
 			continue
 		}
 
-		body, _ := ioutil.ReadAll(res.Body)
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			logger.LogError(fmt.Sprintf("Failed read response body from %s", url), "add lead", data["action"].(string), err)
+		}
 		res.Body.Close()
 		if res.StatusCode == 200 || strings.Contains(string(body), SuccessLeadAdd) || res.Status == "200 OK" {
 			success = true
 			break
 		}
+		err = errors.New(string(body))
 
 		time.Sleep(viper.GetDuration("app.vicidial.delay") * time.Millisecond)
 	}
 	if !success {
-		logger.LogError(fmt.Sprintf("Failed add lead to %s", resource), "add lead", data["phone_number"].(string), nil)
+		logger.LogError(fmt.Sprintf("Failed add lead to %s", resource), "add lead", data["phone_number"].(string), err)
 	}
 }
 

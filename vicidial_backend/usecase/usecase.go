@@ -36,7 +36,7 @@ func (u *Usecase) addLeads(leads []models.Lead) {
 }
 
 func (u *Usecase) addLead(lead models.Lead) {
-	var err error
+	var body []byte
 	const SuccessLeadAdd string = "SUCCESS: add_lead LEAD HAS BEEN ADDED"
 
 	max_tries := viper.GetInt("app.vicidial.max_tries")
@@ -89,7 +89,7 @@ func (u *Usecase) addLead(lead models.Lead) {
 			continue
 		}
 
-		body, err := ioutil.ReadAll(res.Body)
+		body, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			logger.LogError(fmt.Sprintf("Failed read response body from %s", url), "add lead", data["action"].(string), err)
 		}
@@ -98,12 +98,11 @@ func (u *Usecase) addLead(lead models.Lead) {
 			success = true
 			break
 		}
-		err = errors.New(string(body))
 
 		time.Sleep(viper.GetDuration("app.vicidial.delay") * time.Millisecond)
 	}
 	if !success {
-		logger.LogError(fmt.Sprintf("Failed add lead to %s", resource), "add lead", data["phone_number"].(string), err)
+		logger.LogError(fmt.Sprintf("Failed add lead to %s", resource), "add lead", data["phone_number"].(string), errors.New(string(body)))
 	}
 }
 
